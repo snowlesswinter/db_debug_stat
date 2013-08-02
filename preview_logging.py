@@ -22,9 +22,11 @@ def main():
             break
         elif command.find('u ') == 0 or command.find('user_id ') == 0:
             user_id = command[command.find(' ') + 1:]
-            if not walk_through_and_analyze(root, user_id, version):
+            if not walk_through_and_analyze_by_user_id(root, user_id, version):
                 print('LOG NOT FOUND:', user_id)
-                
+        elif command.find('date ') == 0 or command.find('d ') == 0:
+            upload_date = command[command.find(' ') + 1:]
+            walk_through_and_analyze_by_date(root, upload_date, version)
         else:
             print_usage()
 
@@ -32,6 +34,7 @@ def print_usage():
     print('Usage:')
     print('exit:\t\t\tExit the program.')
     print('user_id,u [user id]:\tDump the specified log.')
+    print('date,d [upload date]:\tDump all logs that in a specified upload date.')
 
 def render(log_file_path_name, zip_file_name):
     try:
@@ -78,13 +81,29 @@ def unzip_and_render(zip_dir, zip_file_name):
     except:
         print('FAILED to render: ' + zip_dir + '\\' + zip_file_name)
 
-def walk_through_and_analyze(start_from, user_id, version):
+def walk_through_and_analyze_by_user_id(start_from, user_id, version):
     found = False
     for root, dirs, files in os.walk(start_from + '\\' + version):
         for file in files:
             if os.path.splitext(file)[1] == '.zip' and file.find(user_id) != -1:
                 unzip_and_render(root, file)
                 found = True
+
+    return found
+
+def walk_through_and_analyze_by_date(start_from, date, version):
+    found = False
+    for root, dirs, files in os.walk(start_from + '\\' + version):
+        path_parts = root.rsplit('\\', 1)
+        if len(path_parts) < 2 or path_parts[1] != date:
+            continue
+        
+        for file in files:
+            if os.path.splitext(file)[1] == '.zip':
+                unzip_and_render(root, file)
+                found = True
+
+        break
 
     return found
 
